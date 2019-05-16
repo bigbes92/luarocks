@@ -384,13 +384,6 @@ function cmd.run_command(description, commands, external_namespace, ...)
       end
    end
 
-   if not lua_found then
-      util.warning("Could not find a Lua interpreter for version " ..
-                   lua_version .. " in your PATH. " ..
-                   "Modules may not install with the correct configurations. " ..
-                   "You may want to specify to the path prefix to your build " ..
-                   "of Lua " .. lua_version .. " using --lua-dir")
-   end
    cfg.lua_found = lua_found
 
    if detected.project_dir then
