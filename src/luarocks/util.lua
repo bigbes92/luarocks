@@ -699,7 +699,7 @@ function util.opts_table(type_name, valid_opts)
          if not valid_opts[k] then
             error("invalid option: "..k)
          end
-         local vo, optional = valid_opts[k]:match("^(.-)(%??)$")
+         local vo, optional = valid_opts[k]:match("^(.-)(%?-)$")
          if not (tv == vo or (optional == "?" and tv == nil)) then
             error("invalid type option: "..k.." - got "..tv..", expected "..vo)
          end
