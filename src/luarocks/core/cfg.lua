@@ -68,8 +68,8 @@ local function detect_sysconfdir()
    return basedir
 end
 
-local function set_confdirs(cfg, platforms, hardcoded_sysconfdir)
-   local sysconfdir = os.getenv("LUAROCKS_SYSCONFDIR") or hardcoded_sysconfdir
+local function set_confdirs(cfg, platforms, hardcoded)
+   local sysconfdir = os.getenv("LUAROCKS_SYSCONFDIR") or hardcoded.SYSCONFDIR
    if platforms.windows then
       cfg.home = os.getenv("APPDATA") or "c:"
       cfg.home_tree = cfg.home.."/luarocks"
@@ -79,10 +79,12 @@ local function set_confdirs(cfg, platforms, hardcoded_sysconfdir)
       if not sysconfdir then
          sysconfdir = detect_sysconfdir()
       end
-      cfg.home = os.getenv("HOME") or ""
-      cfg.home_tree = (os.getenv("USER") ~= "root") and cfg.home.."/.luarocks"
-      cfg.homeconfdir = cfg.home.."/.luarocks"
+      cfg.home = hardcoded.HOMEDIR or os.getenv("HOME") or ""
+      cfg.localdir = hardcoded.LOCALDIR or cfg.home
+      local home_tree_subdir = hardcoded.HOME_TREE_SUBDIR or "/.luarocks"
+      cfg.homeconfdir = cfg.localdir .. home_tree_subdir
       cfg.sysconfdir = sysconfdir or "/etc/luarocks"
+      cfg.home_tree = cfg.localdir .. home_tree_subdir
    end
 end
 
@@ -93,6 +95,7 @@ do
       local e
       e = {
          home = cfg.home,
+         localdir = require('fio').cwd(),
          lua_version = cfg.lua_version,
          platforms = util.make_shallow_copy(platforms),
          processor = cfg.target_cpu,   -- remains for compat reasons
@@ -499,6 +502,13 @@ local function make_rocks_provided(lua_version, luajit_version)
       rocks_provided_3_0["luajit"] = luajit_version.."-1"
    end
 
+   if rawget(_G, '_TARANTOOL') then
+    -- Tarantool
+    local tarantool_version = _TARANTOOL:match("([^-]+)-")
+    rocks_provided["tarantool"] = tarantool_version.."-1"
+    rocks_provided_3_0["tarantool"] = tarantool_version.."-1"
+   end
+
    return rocks_provided, rocks_provided_3_0
 end
 
@@ -547,6 +557,10 @@ local cfg = {}
 -- @param warning a logging function for warnings that takes a string
 -- @return true on success; nil and an error message on failure.
 function cfg.init(detected, warning)
+   if cfg.inited == true then
+      return true
+   end
+
    detected = detected or {}
 
    local hc_ok, hardcoded = pcall(require, "luarocks.core.hardcoded")
@@ -632,7 +646,7 @@ function cfg.init(detected, warning)
    local home_config_file
    local project_config_file
    do
-      set_confdirs(cfg, platforms, hardcoded.SYSCONFDIR)
+      set_confdirs(cfg, platforms, hardcoded)
       local name = "config-"..cfg.lua_version..".lua"
       sys_config_file = (cfg.sysconfdir .. "/" .. name):gsub("\\", "/")
       home_config_file = (cfg.homeconfdir .. "/" .. name):gsub("\\", "/")
@@ -824,6 +838,7 @@ function cfg.init(detected, warning)
       return table.concat(platform_keys, ", ")
    end
 
+   cfg.inited = true
    return true
 end
 
