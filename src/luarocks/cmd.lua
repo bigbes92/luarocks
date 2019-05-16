@@ -180,7 +180,7 @@ local function get_lua_version(flags)
          end
       end
    end
-   return nil
+   return nil or cfg.lua_version
 end
 
 --- Main command-line processor.
