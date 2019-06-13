@@ -134,6 +134,7 @@ local function process_dependencies(rockspec, opts)
 end
 
 local function fetch_and_change_to_source_dir(rockspec, opts)
+   local ok, source_dir, errcode
    if opts.minimal_mode then
       return true
    end
@@ -141,7 +142,7 @@ local function fetch_and_change_to_source_dir(rockspec, opts)
       if opts.branch then
          rockspec.source.branch = opts.branch
       end
-      local ok, source_dir, errcode = fetch.fetch_sources(rockspec, true)
+      ok, source_dir, errcode = fetch.fetch_sources(rockspec, true)
       if not ok then
          return nil, source_dir, errcode
       end
@@ -151,7 +152,7 @@ local function fetch_and_change_to_source_dir(rockspec, opts)
          return nil, err
       end
    elseif rockspec.source.file then
-      local ok, err = fs.unpack_archive(rockspec.source.file)
+      local ok, err = fs.unpack_archive(rockspec.source.file, source_dir)
       if not ok then
          return nil, err
       end
