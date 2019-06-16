@@ -385,6 +385,7 @@ function cmd.run_command(description, commands, external_namespace, ...)
    end
 
    if not lua_found then
+      local lua_version = lua_version or cfg.lua_version
       util.warning("Could not find a Lua interpreter for version " ..
                    lua_version .. " in your PATH. " ..
                    "Modules may not install with the correct configurations. " ..
